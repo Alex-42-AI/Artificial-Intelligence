@@ -1,0 +1,2 @@
+## Homework 1
+Assume a sequence of rocks in a river, a total of 2n+1, ordered in a line. The first n rocks have frogs facing right and the last n have frogs facing to the left. A rock can host <= 1 frogs on it. The goal is to swap the frogs such that all frogs face towards the end they're closest to. Frogs can only move in the direction they're looking and can't turn around. They can either jump a distance of 1 rock or jump over another (1) frog at the empty rock.
