@@ -82,10 +82,11 @@ _start = start.copy()
 t = time()
 dfs(_start, result, n)
 print(time() - t)
-print(' '.join([symbols[i] for i in start]))
+print("".join([symbols[i] for i in start]))
 last = n
 
 for idx in result:
     start[last], start[idx] = start[idx], start[last]
-    print(' '.join([symbols[i] for i in start]))
+    print("".join([symbols[i] for i in start]))
     last = idx
+
