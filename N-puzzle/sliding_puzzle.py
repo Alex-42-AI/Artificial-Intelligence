@@ -1,10 +1,9 @@
-from math import sqrt
+from math import sqrt, inf
+
+from time import time
 
 directions = ["up", "down", "left", "right"]
-
-
-def unique_id():
-    return hash(tuple(map(tuple, grid)))
+FOUND = -1
 
 
 def solvable():
@@ -22,135 +21,91 @@ def solvable():
     return (inversions + empty_r) % 2 == wanted_empty % 2
 
 
-def ida_star(last=-1):
-    global heuristic, empty_r, empty_c, wanted_positions
+def ida_star():
+    global heuristic, path
 
-    next_moves = {0, 1, 2, 3} - {last}
+    def manhattan_delta(old_r, old_c, new_r, new_c):
+        w_r, w_c = wanted_positions[grid[old_r][old_c]]
 
-    if not heuristic:
-        return
+        return abs(new_r - w_r) + abs(new_c - w_c) - abs(old_r - w_r) - abs(old_c - w_c)
 
-    if 1 in next_moves and empty_r:  # down
-        num = grid[empty_r - 1][empty_c]
-        grid[empty_r][empty_c], grid[empty_r - 1][empty_c] = num, 0
+    def dfs(last=-1, g=0):
+        global heuristic, empty_r, empty_c, wanted_positions
 
-        if unique_id() in so_far:
-            grid[empty_r][empty_c], grid[empty_r - 1][empty_c] = 0, num
+        if not heuristic:
+            return FOUND
 
-        else:
-            so_far.add(unique_id())
-            empty_r -= 1
-            delta_h = 1 if empty_r + 1 <= wanted_empty_r else -1
+        next_moves = []
 
-            if empty_r < wanted_positions[num][0]:
-                delta_h -= 1
+        if empty_r < n - 1:
+            new_r, new_c = empty_r + 1, empty_c
+            delta_h = manhattan_delta(new_r, new_c, empty_r, empty_c)
 
-            else:
-                delta_h += 1
+            if last:
+                next_moves.append((0, 1, new_r, new_c, delta_h))
 
-            heuristic += delta_h
-            path.append(1)
-            ida_star(0)
+        if empty_r:
+            new_r, new_c = empty_r - 1, empty_c
+            delta_h = manhattan_delta(new_r, new_c, empty_r, empty_c)
 
-            if not heuristic:
-                return
+            if last != 1:
+                next_moves.append((1, 0, new_r, new_c, delta_h))
 
-            heuristic -= delta_h
-            so_far.remove(unique_id())
-            empty_r += 1
-            grid[empty_r][empty_c], grid[empty_r - 1][empty_c] = 0, num
+        if empty_c < n - 1:
+            new_r, new_c = empty_r, empty_c + 1
+            delta_h = manhattan_delta(new_r, new_c, empty_r, empty_c)
 
-    if 3 in next_moves and empty_c:  # right
-        num = grid[empty_r][empty_c - 1]
-        grid[empty_r][empty_c], grid[empty_r][empty_c - 1] = num, 0
+            if last != 2:
+                next_moves.append((2, 3, new_r, new_c, delta_h))
 
-        if unique_id() in so_far:
-            grid[empty_r][empty_c], grid[empty_r][empty_c - 1] = 0, num
+        if empty_c:
+            new_r, new_c = empty_r, empty_c - 1
+            delta_h = manhattan_delta(new_r, new_c, empty_r, empty_c)
 
-        else:
-            so_far.add(unique_id())
-            empty_c -= 1
-            delta_h = 1 if empty_c + 1 <= wanted_empty_c else -1
+            if last != 3:
+                next_moves.append((3, 2, new_r, new_c, delta_h))
 
-            if empty_c < wanted_positions[num][1]:
-                delta_h -= 1
+        next_moves = sorted(next_moves, key=lambda s: s[-1])
+        f = inf
 
-            else:
-                delta_h += 1
+        for i, j, r, c, d_h in next_moves:
+            if (c_f := g + heuristic + d_h) > bound:
+                f = min(f, c_f)
 
-            heuristic += delta_h
-            path.append(3)
-            ida_star(2)
+                break
 
-            if not heuristic:
-                return
+            num = grid[r][c]
+            grid[empty_r][empty_c], grid[r][c] = num, 0
+            heuristic += d_h
+            tmp_r, tmp_c = empty_r, empty_c
+            empty_r, empty_c = r, c
+            path.append(i)
+            t = dfs(j, g + 1)
 
-            heuristic -= delta_h
-            so_far.remove(unique_id())
-            empty_c += 1
-            grid[empty_r][empty_c], grid[empty_r][empty_c - 1] = 0, num
+            if t == FOUND:
+                return FOUND
 
-    if 0 in next_moves and empty_r < n - 1:  # up
-        num = grid[empty_r + 1][empty_c]
-        grid[empty_r][empty_c], grid[empty_r + 1][empty_c] = num, 0
+            f = min(f, t)
+            path.pop()
+            empty_r, empty_c = tmp_r, tmp_c
+            heuristic -= d_h
+            grid[empty_r][empty_c], grid[r][c] = 0, num
 
-        if unique_id() in so_far:
-            grid[empty_r][empty_c], grid[empty_r + 1][empty_c] = 0, num
+        return f
 
-        else:
-            so_far.add(unique_id())
-            empty_r += 1
-            delta_h = 1 if empty_r - 1 >= wanted_empty_r else -1
+    bound = heuristic
 
-            if empty_r > wanted_positions[num][0]:
-                delta_h -= 1
+    while True:
+        t = dfs()
 
-            else:
-                delta_h += 1
+        if t in {FOUND, inf}:
+            return
 
-            heuristic += delta_h
-            path.append(0)
-            ida_star(1)
-
-            if not heuristic:
-                return
-
-            heuristic -= delta_h
-            so_far.remove(unique_id())
-            empty_r -= 1
-            grid[empty_r][empty_c], grid[empty_r + 1][empty_c] = 0, num
-
-    if 2 in next_moves and empty_c < n - 1:  # left
-        num = grid[empty_r][empty_c + 1]
-        grid[empty_r][empty_c], grid[empty_r][empty_c + 1] = num, 0
-
-        if unique_id() in so_far:
-            grid[empty_r][empty_c], grid[empty_r][empty_c + 1] = 0, num
+        if t <= bound:
+            bound += 1
 
         else:
-            so_far.add(unique_id())
-            empty_c += 1
-            delta_h = 1 if empty_c - 1 >= wanted_empty_c else -1
-
-            if empty_c > wanted_positions[num][1]:
-                delta_h -= 1
-
-            else:
-                delta_h += 1
-
-            heuristic += delta_h
-            path.append(2)
-            ida_star(3)
-
-            if not heuristic:
-                return
-
-            heuristic -= delta_h
-            so_far.remove(unique_id())
-            empty_c -= 1
-            grid[empty_r][empty_c], grid[empty_r][empty_c + 1] = 0, num
-
-    path.pop()
+            bound = t
 
 
 k = int(input()) + 1
@@ -166,7 +121,8 @@ for i in range(k):
     if not (num := grid[r := i // n][c := i % n]):
         empty_r, empty_c = r, c
         empty = r * n + c
-        wanted_index = wanted_empty
+
+        continue
 
     else:
         wanted_index = num - 1 + (num > wanted_empty)
@@ -175,18 +131,19 @@ for i in range(k):
     wanted_positions[num] = (wanted_r, wanted_c)
     heuristic += abs(r - wanted_r) + abs(c - wanted_c)
 
+bound = heuristic
+
 if not solvable():
     print(-1)
 
 else:
-    so_far = set()
     flat_wanted = list(range(1, k))
     path = []
     curr_empty = 0
     flat_wanted.insert(wanted_empty, 0)
-
+    t0 = time()
     ida_star()
-    print(len(path))
+    print(time() - t0, len(path), sep="\n")
 
     for d in path:
         print(directions[d])
