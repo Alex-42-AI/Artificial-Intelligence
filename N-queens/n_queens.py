@@ -65,3 +65,4 @@ for c, r in enumerate(cols):
 t = time()
 min_conflicts()
 print(f"# TIMES_MS: alg={(time() - t) * 1000}", cols, sep="\n")
+
