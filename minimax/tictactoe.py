@@ -14,7 +14,7 @@ def transposed(b):
 
 
 def user_won(b):
-    l = [user, user, user]
+    l = [human, human, human]
 
     if l in b:
         return True
@@ -72,13 +72,12 @@ def play():
 
             return memoization[t]
 
-        best = (-2, 9) if (is_bot := player == bot) else (2, -9)
-        best_p = None
+        is_bot, best, best_p = player == bot, (0, 0), None
 
         for i, p in enumerate(slots):
             tmp[p[0]][p[1]] = player
             slots.pop(i)
-            curr = minimax(alpha, betta, l + 1, user if is_bot else bot)
+            curr = minimax(alpha, betta, l + 1, human if is_bot else bot)
             tmp[p[0]][p[1]] = "_"
             slots.insert(i, p)
 
@@ -108,7 +107,7 @@ def play():
     memoization = {}
     slots = [(i, j) for i in range(3) for j in range(3) if tmp[i][j] == "_"]
     x = y = None
-    minimax((-2, 9), (2, -9))
+    minimax((-2, 0), (2, 0))
 
     return x, y
 
@@ -117,7 +116,7 @@ mode = input()
 
 if mode.upper() == "JUDGE":
     bot = input()[-1].upper()
-    user = "O" if bot == "X" else "X"
+    human = "O" if bot == "X" else "X"
     board, terminated = [], True
 
     for i in range(7):
@@ -140,36 +139,36 @@ if mode.upper() == "JUDGE":
 elif mode.upper() == "GAME":
     fst = input().split()
     snd = input().split()
-    first, user = "", ""
+    first, human = "", ""
 
     if fst[0].upper() == "FIRST":
         first = fst[1].upper()
 
     elif fst[0].upper() == "HUMAN":
-        user = fst[1].upper()
+        human = fst[1].upper()
 
     if snd[0].upper() == "FIRST":
         first = snd[1].upper()
 
     elif snd[0].upper() == "HUMAN":
-        user = snd[1].upper()
+        human = snd[1].upper()
 
     board = [["_", "_", "_"], ["_", "_", "_"], ["_", "_", "_"]]
-    bot = "O" if user == "X" else "X"
-    turn = 0
-    x_winner, y_winner = False, False
+    bot = "O" if human == "X" else "X"
+    x_winner, y_winner, turn = False, False, 0
 
-    while turn < 9 + (first == user):
+    if first == human:
         print_board()
 
+    while turn < 9:
         if turn % 2 == (first == bot):
             x, y = map(int, input().split(maxsplit=1))
 
             if board[x - 1][y - 1] == "_":
-                board[x - 1][y - 1] = user
+                board[x - 1][y - 1] = human
 
                 if user_won(board):
-                    if user == "X":
+                    if human == "X":
                         x_winner = True
 
                     else:
@@ -183,9 +182,8 @@ elif mode.upper() == "GAME":
 
         else:
             x, y = play()
-
-            if x is not None:
-                board[x][y] = bot
+            board[x][y] = bot
+            print_board()
 
             if bot_won(board):
                 if bot == "X":
@@ -198,7 +196,8 @@ elif mode.upper() == "GAME":
 
         turn += 1
 
-    print_board()
+    if first == human:
+        print_board()
 
     if x_winner:
         print("WINNER: X")
