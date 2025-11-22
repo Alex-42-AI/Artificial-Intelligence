@@ -4,3 +4,7 @@ Assume a sequence of rocks in a river, a total of 2n+1, ordered in a line. The f
 For a square grid of size N, given input is k = N^2 - 1. Numbers from 0 to k are given as input in an arbitrary order with 0 representing the empty slot. The index of the empty tile in the solution is the second given input. The purpose of the game is to sort the tiles from left to right, top to bottom. Using Manhattan distance as a heuristic, find the shortest solution using IDA* if one exists, otherwise print out -1.
 ## Homework 3 - n queens
 On an NxN chess board, fond a way to fit N queens without any 2 attacking one-another. Use the min-conflicts algorithm to find a solution.
+## Homework 4 - genetic algorithms
+Solve 0-1 knapsack using genetic algorithms.
+## Homework 5 - minimax algorithms
+Create a tic-tac-toe playing bot via the minimax algorithm, using alpha-betta pruning.
