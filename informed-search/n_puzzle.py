@@ -8,7 +8,7 @@ FOUND = -1
 
 def solvable():
     inversions = 0
-    flat = sum(grid, start=[])
+    flat = sum(grid, [])
     flat.remove(0)
 
     for i, m in enumerate(flat):
@@ -98,7 +98,7 @@ def ida_star():
     while True:
         t = dfs()
 
-        if t in {FOUND, inf}:
+        if t == FOUND:
             return
 
         if t <= bound:
