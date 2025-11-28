@@ -5,38 +5,24 @@ from time import time
 from numpy import arange, zeros, nonzero, flatnonzero, random
 
 
-def conflicts(r, c):
-    return rows[r] + main_diags[n + c - r - 1] + sec_diags[r + c] - 3
+def is_valid():
+    if len(set(cols)) < n:
+        return False
 
+    coordinates = [(r, c) for c, r in enumerate(cols)]
+    on_main_diags = zeros(2 * n - 1, bool)
+    on_sec_diags = zeros(2 * n - 1, bool)
 
-def min_conflicts():
-    global cols, rows, main_diags, sec_diags
+    for r, c in coordinates:
+        main_d, sec_d = n - 1 - r + c, r + c
 
-    indices = arange(n)
+        if on_main_diags[main_d] or on_sec_diags[sec_d]:
+            return False
 
-    while True:
-        conflict_values = rows[cols] + main_diags[n + indices - cols - 1] + sec_diags[cols + indices] - 3
-        conflicted = nonzero(conflict_values)[0]
+        on_main_diags[main_d] += 1
+        on_sec_diags[sec_d] += 1
 
-        if not conflicted.size:
-            return
-
-        col = choice(conflicted)
-        curr_r = cols[col]
-        conflicts_for_rows = rows + main_diags[n + col - indices - 1] + sec_diags[indices + col] - 3
-        min_conf = conflicts_for_rows.min()
-        row = random.choice(flatnonzero(conflicts_for_rows == min_conf))
-
-        if curr_r == row:
-            continue
-
-        rows[curr_r] -= 1
-        main_diags[n + col - curr_r - 1] -= 1
-        sec_diags[curr_r + col] -= 1
-        cols[col] = row
-        rows[row] += 1
-        main_diags[n + col - row - 1] += 1
-        sec_diags[row + col] += 1
+    return True
 
 
 n = int(input())
@@ -63,6 +49,31 @@ for c, r in enumerate(cols):
     sec_diags[r + c] += 1
 
 t = time()
-min_conflicts()
-print(f"# TIMES_MS: alg={(time() - t) * 1000}", cols, sep="\n")
+indices = arange(n)
 
+while True:
+    conflict_values = rows[cols] + main_diags[n + indices - cols - 1] + sec_diags[cols + indices] - 3
+    conflicted = nonzero(conflict_values)[0]
+
+    if not conflicted.size:
+        break
+
+    col = choice(conflicted)
+    curr_r = cols[col]
+    conflicts_for_rows = rows + main_diags[n + col - indices - 1] + sec_diags[indices + col] - 3
+    min_conf = conflicts_for_rows.min()
+    row = random.choice(flatnonzero(conflicts_for_rows == min_conf))
+
+    if curr_r == row:
+        continue
+
+    rows[curr_r] -= 1
+    main_diags[n + col - curr_r - 1] -= 1
+    sec_diags[curr_r + col] -= 1
+    cols[col] = row
+    rows[row] += 1
+    main_diags[n + col - row - 1] += 1
+    sec_diags[row + col] += 1
+
+print(f"# TIMES_MS: alg={(time() - t) * 1000}", cols, sep="\n")
+print(is_valid())
